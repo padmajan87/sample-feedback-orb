@@ -1,19 +1,27 @@
-name: SonarCloud Analysis
+name: SonarCloud Scan
+run-name: >
+  ${{ github.event_name == 'pull_request' && format('PR #{0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || format('Push: {0}', github.ref_name) }} 
+  (@${{ github.actor }})
 on:
   pull_request:
     types: [ opened, synchronize, reopened ]
     branches:
       - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out release
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}  # Checkout PR code
-          fetch-depth: 0 #to pull history
+          fetch-depth: 0
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
