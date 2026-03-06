@@ -1,5 +1,4 @@
 name: SonarScan
-#naming the workflow
 run-name: >
   ${{ github.event_name == 'pull_request' && format('PR #{0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || format('Push: {0}', github.ref_name) }} 
   (@${{ github.actor }})
@@ -13,7 +12,8 @@ on:
       - main
   workflow_dispatch:
 jobs:
-  build:
+  sonarscan:
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     steps:
       - name: Check out release
@@ -21,7 +21,6 @@ jobs:
         with:
           fetch-depth: 0
       - name: SonarCloud Scan
-        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
